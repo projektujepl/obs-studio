@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OBS Text Ticker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ── EDYTOR (strona konfiguracyjna) ── */
+  body {
+    background: #0d0f14;
+    color: #e8e8e8;
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  #editor {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    letter-spacing: 3px;
+    color: #ff4d4d;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 40px;
+  }
+
+  .section {
+    margin-bottom: 28px;
+  }
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  textarea, input[type="text"], input[type="number"], select {
+    width: 100%;
+    background: #181b22;
+    border: 1px solid #2e333f;
+    color: #e8e8e8;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus, input:focus, select:focus {
+    border-color: #ff4d4d;
+  }
+  textarea { resize: vertical; min-height: 120px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .row3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  input[type="color"] {
+    width: 100%;
+    height: 44px;
+    border-radius: 6px;
+    border: 1px solid #2e333f;
+    background: #181b22;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+
+  .btn-generate {
+    margin-top: 32px;
+    width: 100%;
+    padding: 16px;
+    background: #ff4d4d;
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-generate:hover { background: #e63333; transform: translateY(-1px); }
+  .btn-generate:active { transform: translateY(0); }
+
+  /* URL output */
+  #url-box {
+    display: none;
+    margin-top: 28px;
+    background: #111520;
+    border: 1px solid #ff4d4d44;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  #url-box p { font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+  #url-out {
+    word-break: break-all;
+    background: #0a0c12;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: #7ecfff;
+    font-family: monospace;
+    margin-bottom: 12px;
+  }
+  .copy-btn {
+    background: #2a2f3d;
+    color: #e8e8e8;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .copy-btn:hover { background: #3a4050; }
+  .preview-btn {
+    background: #ff4d4d22;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d66;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-left: 8px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .preview-btn:hover { background: #ff4d4d44; }
+
+  /* Podgląd inline */
+  #preview-frame {
+    display: none;
+    margin-top: 20px;
+    width: 100%;
+    height: 120px;
+    border-radius: 8px;
+    border: 1px solid #2e333f;
+    background: transparent;
+  }
+
+  /* ── OVERLAY (tryb ?overlay) ── */
+  #overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  .ticker-wrap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .ticker-text {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 2px;
+    white-space: pre-wrap;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* animacje */
+  @keyframes fadeIn    { from{opacity:0} to{opacity:1} }
+  @keyframes fadeOut   { from{opacity:1} to{opacity:0} }
+  @keyframes slideUp   { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes slideDown { from{transform:translateY(-40px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes zoomIn    { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
+  @keyframes glitch1   { 0%,100%{clip-path:inset(0 0 90% 0)} 25%{clip-path:inset(30% 0 50% 0)} 50%{clip-path:inset(60% 0 10% 0)} 75%{clip-path:inset(10% 0 70% 0)} }
+  @keyframes glitch2   { 0%,100%{clip-path:inset(80% 0 0 0);transform:translateX(4px)} 25%{clip-path:inset(50% 0 30% 0);transform:translateX(-4px)} 50%{clip-path:inset(20% 0 60% 0);transform:translateX(3px)} 75%{clip-path:inset(5% 0 80% 0);transform:translateX(-3px)} }
+  @keyframes typeIn    { from{width:0;opacity:1} to{opacity:1} }
+  @keyframes blink     { 50%{opacity:0} }
+
+  .anim-fadeIn    { animation: fadeIn 0.6s ease forwards; }
+  .anim-fadeOut   { animation: fadeOut 0.5s ease forwards; }
+  .anim-slideUp   { animation: slideUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .anim-slideDown { animation: slideDown 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .anim-zoomIn    { animation: zoomIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+
+  .glitch-wrapper { position:relative; }
+  .glitch-layer {
+    position:absolute; inset:0;
+    font-family:inherit; font-size:inherit; letter-spacing:inherit;
+    color:inherit; text-align:center;
+    white-space: pre-wrap; line-height:1.2;
+  }
+  .glitch-layer.g1 { color:#0ff; mix-blend-mode:screen; animation:glitch1 0.4s steps(1) infinite; }
+  .glitch-layer.g2 { color:#f0f; mix-blend-mode:screen; animation:glitch2 0.4s steps(1) 0.07s infinite; }
+
+  .typewriter-wrap { display:inline-block; overflow:hidden; white-space:nowrap; }
+  .typewriter-wrap .ticker-text { display:inline; white-space:nowrap; }
+  .cursor-blink { display:inline-block; width:0.5em; background:currentColor; margin-left:3px; animation:blink 0.7s step-start infinite; vertical-align:baseline; height:1em; }
+</style>
+</head>
+<body>
+
+<!-- EDYTOR -->
+<div id="editor">
+  <h1>OBS TEXT TICKER</h1>
+  <p class="subtitle">Skonfiguruj overlay, wygeneruj link i wrzuć go do OBS jako Browser Source.</p>
+
+  <div class="section">
+    <label>Tekst (każda linia = osobna wiadomość)</label>
+    <textarea id="texts" placeholder="Linia 1&#10;Linia 2&#10;Linia 3"></textarea>
+  </div>
+
+  <div class="section row">
+    <div>
+      <label>Animacja wejścia</label>
+      <select id="anim">
+        <option value="fadeIn">Fade In</option>
+        <option value="slideUp">Slide Up</option>
+        <option value="slideDown">Slide Down</option>
+        <option value="zoomIn">Zoom In</option>
+        <option value="glitch">Glitch</option>
+        <option value="typewriter">Typewriter</option>
+      </select>
+    </div>
+    <div>
+      <label>Czas wyświetlania (sek)</label>
+      <input type="number" id="duration" value="4" min="1" max="60">
+    </div>
+  </div>
+
+  <div class="section row3">
+    <div>
+      <label>Kolor tekstu</label>
+      <input type="color" id="color" value="#ffffff">
+    </div>
+    <div>
+      <label>Tło (kolor)</label>
+      <input type="color" id="bg" value="#000000">
+    </div>
+    <div>
+      <label>Przezroczystość tła</label>
+      <input type="number" id="bgOpacity" value="0" min="0" max="100" placeholder="0=brak tła">
+    </div>
+  </div>
+
+  <div class="section row">
+    <div>
+      <label>Rozmiar czcionki (px)</label>
+      <input type="number" id="fsize" value="72" min="12" max="300">
+    </div>
+    <div>
+      <label>Pozycja w OBS</label>
+      <select id="pos">
+        <option value="center">Środek</option>
+        <option value="top">Góra</option>
+        <option value="bottom">Dół</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Cień / glow (opcjonalnie)</label>
+    <select id="shadow">
+      <option value="none">Brak</option>
+      <option value="drop">Drop shadow</option>
+      <option value="glow-red">Glow czerwony</option>
+      <option value="glow-blue">Glow niebieski</option>
+      <option value="glow-white">Glow biały</option>
+      <option value="outline">Outline czarny</option>
+    </select>
+  </div>
+
+  <button class="btn-generate" onclick="generate()">⚡ GENERUJ LINK OBS</button>
+
+  <div id="url-box">
+    <p>🔗 Twój URL do OBS (Browser Source)</p>
+    <div id="url-out"></div>
+    <button class="copy-btn" onclick="copyURL()">📋 Kopiuj</button>
+    <a id="preview-link" class="preview-btn" target="_blank" href="#">👁 Otwórz podgląd</a>
+    <br><br>
+    <p style="color:#666;font-size:0.78rem;letter-spacing:0">W OBS: Dodaj źródło → Browser → wklej URL → ustaw szerokość/wysokość swojej rozdzielczości. Zaznacz "Przeźroczyste tło" jeśli nie chcesz tła.</p>
+    <iframe id="preview-frame" frameborder="0"></iframe>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div class="ticker-wrap" id="ticker-wrap">
+    <div class="ticker-text" id="ticker-text"></div>
+  </div>
+</div>
+
+<script>
+// ── Sprawdź tryb ──
+const params = new URLSearchParams(location.search);
+if (params.has('overlay')) {
+  document.getElementById('editor').style.display = 'none';
+  document.getElementById('overlay').style.display = 'block';
+  runOverlay(params);
+}
+
+// ── Generowanie URL ──
+function generate() {
+  const texts = document.getElementById('texts').value.trim();
+  if (!texts) { alert('Wpisz chociaż jedną linię tekstu!'); return; }
+
+  const p = new URLSearchParams();
+  p.set('overlay','1');
+  p.set('texts', texts);
+  p.set('anim', document.getElementById('anim').value);
+  p.set('dur', document.getElementById('duration').value);
+  p.set('color', document.getElementById('color').value.replace('#',''));
+  p.set('bg', document.getElementById('bg').value.replace('#',''));
+  p.set('bgop', document.getElementById('bgOpacity').value);
+  p.set('fsize', document.getElementById('fsize').value);
+  p.set('pos', document.getElementById('pos').value);
+  p.set('shadow', document.getElementById('shadow').value);
+
+  const url = location.origin + location.pathname + '?' + p.toString();
+  document.getElementById('url-out').textContent = url;
+  document.getElementById('preview-link').href = url;
+  document.getElementById('url-box').style.display = 'block';
+
+  // inline preview
+  const frame = document.getElementById('preview-frame');
+  frame.style.display = 'block';
+  frame.src = url;
+}
+
+function copyURL() {
+  const url = document.getElementById('url-out').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ Skopiowano!';
+    setTimeout(() => btn.textContent = '📋 Kopiuj', 2000);
+  });
+}
+
+// ── OVERLAY LOGIC ──
+function runOverlay(p) {
+  const texts   = p.get('texts').split('\n').filter(t => t.trim());
+  const anim    = p.get('anim') || 'fadeIn';
+  const dur     = (parseFloat(p.get('dur')) || 4) * 1000;
+  const color   = '#' + (p.get('color') || 'ffffff');
+  const bg      = p.get('bg') || '000000';
+  const bgop    = parseFloat(p.get('bgop') || 0) / 100;
+  const fsize   = parseInt(p.get('fsize') || 72);
+  const pos     = p.get('pos') || 'center';
+  const shadow  = p.get('shadow') || 'none';
+
+  // bg
+  if (bgop > 0) {
+    const r = parseInt(bg.slice(0,2),16), g = parseInt(bg.slice(2,4),16), b = parseInt(bg.slice(4,6),16);
+    document.body.style.background = `rgba(${r},${g},${b},${bgop})`;
+  }
+
+  // pozycja
+  const wrap = document.getElementById('ticker-wrap');
+  wrap.style.position = 'absolute';
+  wrap.style.left = '50%';
+  if (pos === 'top') {
+    wrap.style.top = '40px';
+    wrap.style.transform = 'translateX(-50%)';
+  } else if (pos === 'bottom') {
+    wrap.style.bottom = '40px';
+    wrap.style.top = 'auto';
+    wrap.style.transform = 'translateX(-50%)';
+  } else {
+    wrap.style.top = '50%';
+    wrap.style.transform = 'translate(-50%,-50%)';
+  }
+
+  // shadow/glow
+  let textShadow = 'none';
+  if (shadow === 'drop')       textShadow = '2px 4px 8px rgba(0,0,0,0.9)';
+  if (shadow === 'glow-red')   textShadow = '0 0 20px #ff2222, 0 0 40px #ff0000aa';
+  if (shadow === 'glow-blue')  textShadow = '0 0 20px #22aaff, 0 0 40px #0088ffaa';
+  if (shadow === 'glow-white') textShadow = '0 0 16px #ffffff, 0 0 32px #ffffffaa';
+  if (shadow === 'outline')    textShadow = '-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000';
+
+  const el = document.getElementById('ticker-text');
+  el.style.color = color;
+  el.style.fontSize = fsize + 'px';
+  el.style.textShadow = textShadow;
+
+  let idx = 0;
+  function show() {
+    const txt = texts[idx % texts.length];
+    idx++;
+
+    // reset
+    el.className = 'ticker-text';
+    wrap.innerHTML = '';
+    wrap.className = 'ticker-wrap';
+
+    if (anim === 'glitch') {
+      wrap.classList.add('glitch-wrapper');
+      el.textContent = txt;
+      const g1 = document.createElement('div');
+      g1.className = 'glitch-layer g1'; g1.textContent = txt;
+      g1.style.fontSize = fsize + 'px';
+      const g2 = document.createElement('div');
+      g2.className = 'glitch-layer g2'; g2.textContent = txt;
+      g2.style.fontSize = fsize + 'px';
+      el.style.position = 'relative';
+      el.style.zIndex = 1;
+      el.style.textShadow = textShadow;
+      wrap.appendChild(el);
+      wrap.appendChild(g1);
+      wrap.appendChild(g2);
+      el.classList.add('anim-fadeIn');
+      setTimeout(() => {
+        g1.style.animationPlayState = 'paused';
+        g2.style.animationPlayState = 'paused';
+        el.classList.add('anim-fadeOut');
+        setTimeout(show, 500);
+      }, dur);
+
+    } else if (anim === 'typewriter') {
+      const outer = document.createElement('div');
+      outer.className = 'typewriter-wrap';
+      outer.style.maxWidth = '90vw';
+      el.textContent = txt;
+      el.style.overflow = 'hidden';
+      el.style.display = 'inline-block';
+      el.style.whiteSpace = 'nowrap';
+      outer.appendChild(el);
+      const cursor = document.createElement('span');
+      cursor.className = 'cursor-blink';
+      cursor.style.color = color;
+      outer.appendChild(cursor);
+      wrap.appendChild(outer);
+
+      // type char by char
+      const chars = txt.split('');
+      el.textContent = '';
+      let ci = 0;
+      const speed = Math.max(40, (dur * 0.5) / chars.length);
+      const timer = setInterval(() => {
+        el.textContent += chars[ci];
+        ci++;
+        if (ci >= chars.length) clearInterval(timer);
+      }, speed);
+
+      setTimeout(() => {
+        cursor.style.animation = 'none';
+        cursor.style.opacity = '0';
+        el.classList.add('anim-fadeOut');
+        setTimeout(show, 600);
+      }, dur + (chars.length * speed));
+
+    } else {
+      el.textContent = txt;
+      wrap.appendChild(el);
+      el.classList.add('anim-' + anim);
+      setTimeout(() => {
+        el.classList.remove('anim-' + anim);
+        el.classList.add('anim-fadeOut');
+        setTimeout(show, 500);
+      }, dur);
+    }
+  }
+  show();
+}
+</script>
+</body>
+</html>
