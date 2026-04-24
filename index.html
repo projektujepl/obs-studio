@@ -3,482 +3,951 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OBS Text Ticker</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<title>OBS Text Ticker Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700&family=Oswald:wght@400;700&family=Montserrat:wght@400;700;900&family=Press+Start+2P&family=Permanent+Marker&family=Rajdhani:wght@400;700&family=Cinzel:wght@400;700&family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0c10; color:#e0e0e0; font-family:'Barlow',sans-serif; min-height:100vh; }
+#editor { max-width:860px; margin:0 auto; padding:48px 24px 80px; }
+.logo { display:flex; align-items:baseline; gap:10px; margin-bottom:4px; }
+.logo h1 { font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:4px; color:#ff4d4d; }
+.logo .badge { background:#ff4d4d22; border:1px solid #ff4d4d55; color:#ff4d4d; font-size:0.65rem; font-weight:700; letter-spacing:2px; padding:3px 8px; border-radius:4px; }
+.subtitle { color:#666; font-size:0.88rem; margin-bottom:32px; }
+.tabs { display:flex; gap:2px; margin-bottom:28px; border-bottom:1px solid #1a1e2a; flex-wrap:wrap; }
+.tab { padding:10px 18px; font-size:0.75rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:#555; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+.tab.active { color:#ff4d4d; border-bottom-color:#ff4d4d; }
+.tab:hover:not(.active) { color:#999; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+.section { margin-bottom:22px; }
+.section-title { font-size:0.68rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#ff4d4d77; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #1a1e2a; }
+label { display:block; font-size:0.71rem; font-weight:600; letter-spacing:1.1px; text-transform:uppercase; color:#888; margin-bottom:7px; }
+label span { color:#555; font-weight:400; text-transform:none; letter-spacing:0; font-size:0.85em; }
+textarea, input[type=text], input[type=number], select {
+  width:100%; background:#111420; border:1px solid #222840; color:#e0e0e0;
+  border-radius:7px; padding:11px 14px; font-family:'Barlow',sans-serif; font-size:0.93rem;
+  outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+}
+textarea:focus, input:focus, select:focus { border-color:#ff4d4d; box-shadow:0 0 0 3px #ff4d4d14; }
+textarea { resize:vertical; min-height:108px; }
+input[type=color] { width:100%; height:42px; border-radius:7px; border:1px solid #222840; background:#111420; cursor:pointer; padding:3px 5px; }
+input[type=range] { width:100%; accent-color:#ff4d4d; cursor:pointer; margin-top:6px; }
+input[type=checkbox] { accent-color:#ff4d4d; width:16px; height:16px; cursor:pointer; }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.row4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; }
+.rval { font-size:0.73rem; color:#ff4d4d; font-weight:700; margin-top:2px; }
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid #111420; gap:16px; }
+.toggle-row > label { margin:0; flex:1; }
+.switch { position:relative; width:40px; height:22px; flex-shrink:0; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; inset:0; background:#222840; border-radius:22px; cursor:pointer; transition:.25s; }
+.slider:before { content:''; position:absolute; height:16px; width:16px; left:3px; bottom:3px; background:#555; border-radius:50%; transition:.25s; }
+.switch input:checked + .slider { background:#ff4d4d; }
+.switch input:checked + .slider:before { transform:translateX(18px); background:#fff; }
+.color-presets { display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; }
+.swatch { width:24px; height:24px; border-radius:5px; cursor:pointer; border:2px solid transparent; transition:transform .15s, border-color .15s; flex-shrink:0; }
+.swatch:hover { transform:scale(1.25); border-color:#fff5; }
+.btn-generate { margin-top:28px; width:100%; padding:16px; background:linear-gradient(135deg,#ff4d4d,#dd1111); color:#fff; font-family:'Bebas Neue',sans-serif; font-size:1.45rem; letter-spacing:3px; border:none; border-radius:9px; cursor:pointer; transition:all .2s; box-shadow:0 4px 22px #ff4d4d33; }
+.btn-generate:hover { transform:translateY(-2px); box-shadow:0 6px 30px #ff4d4d55; }
+.btn-generate:active { transform:translateY(0); }
+#url-box { display:none; margin-top:22px; background:#0c0f18; border:1px solid #ff4d4d2a; border-radius:10px; padding:18px; }
+.url-label { font-size:0.68rem; letter-spacing:1.5px; text-transform:uppercase; color:#666; margin-bottom:10px; }
+#url-out { word-break:break-all; background:#080a0f; border-radius:6px; padding:10px 13px; font-size:0.79rem; color:#6bc5ff; font-family:monospace; margin-bottom:12px; border:1px solid #1a1e2a; line-height:1.5; }
+.btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+.copy-btn { background:#1a1e2a; color:#ddd; border:none; border-radius:6px; padding:9px 16px; font-family:'Barlow',sans-serif; font-size:0.83rem; cursor:pointer; transition:background .2s; }
+.copy-btn:hover { background:#252a38; }
+.preview-btn { background:#ff4d4d14; color:#ff4d4d; border:1px solid #ff4d4d44; border-radius:6px; padding:9px 16px; font-family:'Barlow',sans-serif; font-size:0.83rem; cursor:pointer; text-decoration:none; display:inline-block; transition:background .2s; }
+.preview-btn:hover { background:#ff4d4d28; }
+.obs-hint { margin-top:13px; color:#444; font-size:0.75rem; line-height:1.7; }
+.obs-hint strong { color:#777; }
+#preview-frame { display:none; margin-top:14px; width:100%; height:180px; border-radius:8px; border:1px solid #1a1e2a; }
 
-  /* ── EDYTOR (strona konfiguracyjna) ── */
-  body {
-    background: #0d0f14;
-    color: #e8e8e8;
-    font-family: 'Barlow', sans-serif;
-    min-height: 100vh;
-  }
-
-  #editor {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 48px 24px;
-  }
-
-  h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.8rem;
-    letter-spacing: 3px;
-    color: #ff4d4d;
-    margin-bottom: 6px;
-  }
-  .subtitle {
-    color: #888;
-    font-size: 0.9rem;
-    margin-bottom: 40px;
-  }
-
-  .section {
-    margin-bottom: 28px;
-  }
-  label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #aaa;
-    margin-bottom: 8px;
-  }
-  textarea, input[type="text"], input[type="number"], select {
-    width: 100%;
-    background: #181b22;
-    border: 1px solid #2e333f;
-    color: #e8e8e8;
-    border-radius: 6px;
-    padding: 12px 14px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  textarea:focus, input:focus, select:focus {
-    border-color: #ff4d4d;
-  }
-  textarea { resize: vertical; min-height: 120px; }
-
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .row3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
-  }
-
-  input[type="color"] {
-    width: 100%;
-    height: 44px;
-    border-radius: 6px;
-    border: 1px solid #2e333f;
-    background: #181b22;
-    cursor: pointer;
-    padding: 2px 4px;
-  }
-
-  .btn-generate {
-    margin-top: 32px;
-    width: 100%;
-    padding: 16px;
-    background: #ff4d4d;
-    color: #fff;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    letter-spacing: 2px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
-  .btn-generate:hover { background: #e63333; transform: translateY(-1px); }
-  .btn-generate:active { transform: translateY(0); }
-
-  /* URL output */
-  #url-box {
-    display: none;
-    margin-top: 28px;
-    background: #111520;
-    border: 1px solid #ff4d4d44;
-    border-radius: 8px;
-    padding: 20px;
-  }
-  #url-box p { font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: #888; margin-bottom: 10px; }
-  #url-out {
-    word-break: break-all;
-    background: #0a0c12;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 0.82rem;
-    color: #7ecfff;
-    font-family: monospace;
-    margin-bottom: 12px;
-  }
-  .copy-btn {
-    background: #2a2f3d;
-    color: #e8e8e8;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 18px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .copy-btn:hover { background: #3a4050; }
-  .preview-btn {
-    background: #ff4d4d22;
-    color: #ff4d4d;
-    border: 1px solid #ff4d4d66;
-    border-radius: 6px;
-    padding: 8px 18px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 0.85rem;
-    cursor: pointer;
-    margin-left: 8px;
-    text-decoration: none;
-    display: inline-block;
-    transition: background 0.2s;
-  }
-  .preview-btn:hover { background: #ff4d4d44; }
-
-  /* Podgląd inline */
-  #preview-frame {
-    display: none;
-    margin-top: 20px;
-    width: 100%;
-    height: 120px;
-    border-radius: 8px;
-    border: 1px solid #2e333f;
-    background: transparent;
-  }
-
-  /* ── OVERLAY (tryb ?overlay) ── */
-  #overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: transparent;
-    overflow: hidden;
-  }
-
-  .ticker-wrap {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  .ticker-text {
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 2px;
-    white-space: pre-wrap;
-    text-align: center;
-    line-height: 1.2;
-  }
-
-  /* animacje */
-  @keyframes fadeIn    { from{opacity:0} to{opacity:1} }
-  @keyframes fadeOut   { from{opacity:1} to{opacity:0} }
-  @keyframes slideUp   { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
-  @keyframes slideDown { from{transform:translateY(-40px);opacity:0} to{transform:translateY(0);opacity:1} }
-  @keyframes zoomIn    { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
-  @keyframes glitch1   { 0%,100%{clip-path:inset(0 0 90% 0)} 25%{clip-path:inset(30% 0 50% 0)} 50%{clip-path:inset(60% 0 10% 0)} 75%{clip-path:inset(10% 0 70% 0)} }
-  @keyframes glitch2   { 0%,100%{clip-path:inset(80% 0 0 0);transform:translateX(4px)} 25%{clip-path:inset(50% 0 30% 0);transform:translateX(-4px)} 50%{clip-path:inset(20% 0 60% 0);transform:translateX(3px)} 75%{clip-path:inset(5% 0 80% 0);transform:translateX(-3px)} }
-  @keyframes typeIn    { from{width:0;opacity:1} to{opacity:1} }
-  @keyframes blink     { 50%{opacity:0} }
-
-  .anim-fadeIn    { animation: fadeIn 0.6s ease forwards; }
-  .anim-fadeOut   { animation: fadeOut 0.5s ease forwards; }
-  .anim-slideUp   { animation: slideUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
-  .anim-slideDown { animation: slideDown 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
-  .anim-zoomIn    { animation: zoomIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
-
-  .glitch-wrapper { position:relative; }
-  .glitch-layer {
-    position:absolute; inset:0;
-    font-family:inherit; font-size:inherit; letter-spacing:inherit;
-    color:inherit; text-align:center;
-    white-space: pre-wrap; line-height:1.2;
-  }
-  .glitch-layer.g1 { color:#0ff; mix-blend-mode:screen; animation:glitch1 0.4s steps(1) infinite; }
-  .glitch-layer.g2 { color:#f0f; mix-blend-mode:screen; animation:glitch2 0.4s steps(1) 0.07s infinite; }
-
-  .typewriter-wrap { display:inline-block; overflow:hidden; white-space:nowrap; }
-  .typewriter-wrap .ticker-text { display:inline; white-space:nowrap; }
-  .cursor-blink { display:inline-block; width:0.5em; background:currentColor; margin-left:3px; animation:blink 0.7s step-start infinite; vertical-align:baseline; height:1em; }
+/* ── OVERLAY ── */
+#overlay { display:none; position:fixed; inset:0; background:transparent; overflow:hidden; }
+.ticker-wrap { position:absolute; }
+.ticker-bg-box { display:inline-block; position:relative; }
+.ticker-text { letter-spacing:2px; white-space:pre-wrap; text-align:center; line-height:1.15; display:block; }
+.progress-bar-wrap { position:absolute; bottom:0; left:0; right:0; height:4px; border-radius:0 0 8px 8px; overflow:hidden; background:rgba(255,255,255,.12); }
+.progress-bar { height:100%; background:#ff4d4d; transform-origin:left; }
+.marquee-outer { overflow:hidden; width:100vw; }
+.marquee-inner { display:inline-block; white-space:nowrap; }
+@keyframes marquee-anim { from{transform:translateX(100vw)} to{transform:translateX(-100%)} }
+@keyframes fadeIn     { from{opacity:0} to{opacity:1} }
+@keyframes fadeOut    { from{opacity:1} to{opacity:0} }
+@keyframes slideUp    { from{transform:translateY(50px);opacity:0}  to{transform:translateY(0);opacity:1} }
+@keyframes slideDown  { from{transform:translateY(-50px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes slideLeft  { from{transform:translateX(80px);opacity:0}  to{transform:translateX(0);opacity:1} }
+@keyframes slideRight { from{transform:translateX(-80px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes zoomIn     { from{transform:scale(0.45);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes zoomOut    { from{transform:scale(1.7);opacity:0}  to{transform:scale(1);opacity:1} }
+@keyframes flipIn     { from{transform:perspective(600px) rotateX(90deg);opacity:0} to{transform:perspective(600px) rotateX(0deg);opacity:1} }
+@keyframes bounceIn   { 0%{transform:scale(.25);opacity:0} 55%{transform:scale(1.09)} 75%{transform:scale(.96)} 100%{transform:scale(1);opacity:1} }
+@keyframes rollIn     { from{transform:translateX(-120px) rotate(-18deg);opacity:0} to{transform:none;opacity:1} }
+@keyframes shakeIn    { 0%{transform:translateX(-35px);opacity:0} 20%{transform:translateX(22px)} 40%{transform:translateX(-14px)} 60%{transform:translateX(9px)} 80%{transform:translateX(-4px)} 100%{transform:translateX(0);opacity:1} }
+@keyframes glitch1    { 0%,100%{clip-path:inset(0 0 92% 0)} 25%{clip-path:inset(28% 0 52% 0)} 50%{clip-path:inset(58% 0 12% 0)} 75%{clip-path:inset(10% 0 72% 0)} }
+@keyframes glitch2    { 0%,100%{clip-path:inset(78% 0 0 0);transform:translateX(5px)} 25%{clip-path:inset(48% 0 32% 0);transform:translateX(-5px)} 50%{clip-path:inset(22% 0 58% 0);transform:translateX(4px)} 75%{clip-path:inset(5% 0 82% 0);transform:translateX(-4px)} }
+@keyframes blink      { 50%{opacity:0} }
+@keyframes pulseScale { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+@keyframes rainbowShift { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+@keyframes neonFlicker { 0%,19%,21%,23%,25%,54%,56%,100%{opacity:1} 20%,24%,55%{opacity:.35} }
+@keyframes waveFloat  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+@keyframes spin3d     { 0%{transform:perspective(600px) rotateY(0)} 100%{transform:perspective(600px) rotateY(360deg)} }
+.anim-fadeIn    { animation:fadeIn    var(--asp,.55s) ease forwards; }
+.anim-fadeOut   { animation:fadeOut   .4s ease forwards; }
+.anim-slideUp   { animation:slideUp   var(--asp,.5s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-slideDown { animation:slideDown var(--asp,.5s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-slideLeft { animation:slideLeft var(--asp,.5s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-slideRight{ animation:slideRight var(--asp,.5s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-zoomIn    { animation:zoomIn    var(--asp,.5s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-zoomOut   { animation:zoomOut   var(--asp,.5s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-flipIn    { animation:flipIn    var(--asp,.6s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-bounceIn  { animation:bounceIn  var(--asp,.7s) ease forwards; }
+.anim-rollIn    { animation:rollIn    var(--asp,.6s) cubic-bezier(.22,1,.36,1) forwards; }
+.anim-shakeIn   { animation:shakeIn   var(--asp,.6s) ease forwards; }
+.glitch-layer   { position:absolute; inset:0; text-align:center; white-space:pre-wrap; line-height:1.15; pointer-events:none; }
+.glitch-layer.g1{ color:#0ff; mix-blend-mode:screen; animation:glitch1 .38s steps(1) infinite; }
+.glitch-layer.g2{ color:#f0f; mix-blend-mode:screen; animation:glitch2 .38s steps(1) .06s infinite; }
+.cursor-blink { display:inline-block; width:.45em; background:currentColor; margin-left:3px; animation:blink .7s step-start infinite; vertical-align:baseline; }
+.fx-pulse   { animation:pulseScale 1.4s ease-in-out infinite; }
+.fx-rainbow { animation:rainbowShift 3s linear infinite; }
+.fx-neon    { animation:neonFlicker 2.5s linear infinite; }
+.fx-wave    { animation:waveFloat 1.3s ease-in-out infinite; }
+.fx-spin3d  { animation:spin3d 4s linear infinite; }
 </style>
 </head>
 <body>
 
-<!-- EDYTOR -->
 <div id="editor">
-  <h1>OBS TEXT TICKER</h1>
-  <p class="subtitle">Skonfiguruj overlay, wygeneruj link i wrzuć go do OBS jako Browser Source.</p>
+  <div class="logo">
+    <h1>OBS TICKER</h1>
+    <span class="badge">PRO</span>
+  </div>
+  <p class="subtitle">Skonfiguruj overlay → wygeneruj link → wrzuć do OBS jako Browser Source</p>
 
-  <div class="section">
-    <label>Tekst (każda linia = osobna wiadomość)</label>
-    <textarea id="texts" placeholder="Linia 1&#10;Linia 2&#10;Linia 3"></textarea>
+  <div class="tabs" id="tabs-bar"></div>
+
+  <div class="tab-panel active" id="tab-tekst">
+    <div class="section">
+      <div class="section-title">Treść</div>
+      <div class="section">
+        <label>Wiadomości <span>— każda linia = osobna wiadomość</span></label>
+        <textarea id="texts" placeholder="Witaj na streamie! 👋&#10;Śledź mnie na Twitterze @nick&#10;Dołącz do discorda: discord.gg/xyz&#10;!komendy — lista komend bota"></textarea>
+      </div>
+      <div class="row2">
+        <div>
+          <label>Kolejność</label>
+          <select id="order">
+            <option value="seq">Kolejna (1→2→3→...)</option>
+            <option value="random">Losowa</option>
+            <option value="single">Tylko pierwsza (statyczna)</option>
+          </select>
+        </div>
+        <div>
+          <label>Tryb wyświetlania</label>
+          <select id="mode">
+            <option value="normal">Normalny (pojawia się / znika)</option>
+            <option value="marquee">Scrollujący pasek (ticker)</option>
+            <option value="permanent">Stały — nie znika</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2" style="margin-top:14px">
+        <div>
+          <label>Prefiks / emoji przed tekstem <span>(opcjonalnie)</span></label>
+          <input type="text" id="prefix" placeholder="🎮  lub  ▶  lub  [LIVE]">
+        </div>
+        <div>
+          <label>Suffix / emoji za tekstem <span>(opcjonalnie)</span></label>
+          <input type="text" id="suffix" placeholder="🔴  lub  • LIVE">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Czas</div>
+      <div class="row2">
+        <div>
+          <label>Czas wyświetlania: <span id="dur-val">4 s</span></label>
+          <input type="range" id="duration" min="1" max="30" value="4" oninput="V('dur-val',this.value+' s')">
+        </div>
+        <div>
+          <label>Przerwa między wiadomościami: <span id="gap-val">1 s</span></label>
+          <input type="range" id="gap" min="0" max="10" value="1" oninput="V('gap-val',this.value+' s')">
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="section row">
-    <div>
-      <label>Animacja wejścia</label>
-      <select id="anim">
-        <option value="fadeIn">Fade In</option>
-        <option value="slideUp">Slide Up</option>
-        <option value="slideDown">Slide Down</option>
-        <option value="zoomIn">Zoom In</option>
-        <option value="glitch">Glitch</option>
-        <option value="typewriter">Typewriter</option>
-      </select>
+  <div class="tab-panel" id="tab-wyglad">
+    <div class="section">
+      <div class="section-title">Czcionka</div>
+      <div class="row2">
+        <div>
+          <label>Rodzina czcionki</label>
+          <select id="font">
+            <option value="Bebas Neue">Bebas Neue (Caps, Display)</option>
+            <option value="Oswald">Oswald (Bold, Clean)</option>
+            <option value="Montserrat">Montserrat (Modern)</option>
+            <option value="Rajdhani">Rajdhani (Techy)</option>
+            <option value="Exo 2">Exo 2 (Sci-Fi)</option>
+            <option value="Cinzel">Cinzel (Klasyczny)</option>
+            <option value="Press Start 2P">Press Start 2P (Pixel / Retro)</option>
+            <option value="Permanent Marker">Permanent Marker (Ręczny)</option>
+            <option value="Arial">Arial</option>
+            <option value="Georgia">Georgia</option>
+            <option value="monospace">Monospace (Terminal)</option>
+          </select>
+        </div>
+        <div>
+          <label>Rozmiar: <span id="fsize-val">72 px</span></label>
+          <input type="range" id="fsize" min="10" max="260" value="72" oninput="V('fsize-val',this.value+' px')">
+        </div>
+      </div>
+      <div class="row3" style="margin-top:14px">
+        <div>
+          <label>Grubość</label>
+          <select id="weight">
+            <option value="400">Normal (400)</option>
+            <option value="700" selected>Bold (700)</option>
+            <option value="900">Black (900)</option>
+          </select>
+        </div>
+        <div>
+          <label>Odstęp liter: <span id="ls-val">2 px</span></label>
+          <input type="range" id="letterspacing" min="-2" max="24" value="2" oninput="V('ls-val',this.value+' px')">
+        </div>
+        <div>
+          <label>Wyrównanie tekstu</label>
+          <select id="align">
+            <option value="center">Środek</option>
+            <option value="left">Lewo</option>
+            <option value="right">Prawo</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div>
-      <label>Czas wyświetlania (sek)</label>
-      <input type="number" id="duration" value="4" min="1" max="60">
+    <div class="section">
+      <div class="section-title">Kolory tekstu</div>
+      <div class="row3">
+        <div>
+          <label>Kolor tekstu</label>
+          <input type="color" id="color" value="#ffffff">
+          <div class="color-presets">
+            <div class="swatch" style="background:#fff"     title="#fff"    onclick="setC('color','#ffffff')"></div>
+            <div class="swatch" style="background:#ff4d4d"  title="Czerwony" onclick="setC('color','#ff4d4d')"></div>
+            <div class="swatch" style="background:#ffdd44"  title="Żółty"   onclick="setC('color','#ffdd44')"></div>
+            <div class="swatch" style="background:#44ffaa"  title="Zielony" onclick="setC('color','#44ffaa')"></div>
+            <div class="swatch" style="background:#44aaff"  title="Niebieski" onclick="setC('color','#44aaff')"></div>
+            <div class="swatch" style="background:#dd44ff"  title="Fiolet"  onclick="setC('color','#dd44ff')"></div>
+            <div class="swatch" style="background:#ff8800"  title="Pomarańcz" onclick="setC('color','#ff8800')"></div>
+            <div class="swatch" style="background:#00ffff"  title="Cyan"    onclick="setC('color','#00ffff')"></div>
+          </div>
+        </div>
+        <div>
+          <label>Gradient kolor 1</label>
+          <input type="color" id="grad1" value="#ff4d4d">
+          <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="useGradient">
+            <label style="margin:0;text-transform:none;letter-spacing:0;font-size:0.82rem">Użyj gradientu zamiast koloru</label>
+          </div>
+        </div>
+        <div>
+          <label>Gradient kolor 2</label>
+          <input type="color" id="grad2" value="#ffdd44">
+          <div style="margin-top:10px">
+            <label>Kierunek gradientu</label>
+            <select id="gradDir">
+              <option value="90deg">→ Poziomy</option>
+              <option value="135deg">↘ Ukośny</option>
+              <option value="180deg">↓ Pionowy</option>
+              <option value="45deg">↗ Ukośny 2</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Tło i ramka</div>
+      <div class="row3">
+        <div>
+          <label>Typ tła</label>
+          <select id="bgType">
+            <option value="none">Brak (przeźroczyste)</option>
+            <option value="solid">Jednolite</option>
+            <option value="gradient">Gradient</option>
+          </select>
+        </div>
+        <div>
+          <label>Kolor tła</label>
+          <input type="color" id="bg" value="#000000">
+          <div class="color-presets">
+            <div class="swatch" style="background:#000"     onclick="setC('bg','#000000')"></div>
+            <div class="swatch" style="background:#111827" onclick="setC('bg','#111827')"></div>
+            <div class="swatch" style="background:#1a0a0a" onclick="setC('bg','#1a0a0a')"></div>
+            <div class="swatch" style="background:#0a1a2a" onclick="setC('bg','#0a1a2a')"></div>
+            <div class="swatch" style="background:#1a1a00" onclick="setC('bg','#1a1a00')"></div>
+            <div class="swatch" style="background:#0d0020" onclick="setC('bg','#0d0020')"></div>
+          </div>
+        </div>
+        <div>
+          <label>Przezroczystość tła: <span id="bgop-val">0%</span></label>
+          <input type="range" id="bgOpacity" min="0" max="100" value="0" oninput="V('bgop-val',this.value+'%')">
+        </div>
+      </div>
+      <div class="row4" style="margin-top:14px">
+        <div>
+          <label>Zaokrąglenie: <span id="brad-val">8 px</span></label>
+          <input type="range" id="bradius" min="0" max="60" value="8" oninput="V('brad-val',this.value+' px')">
+        </div>
+        <div>
+          <label>Padding X: <span id="px-val">20 px</span></label>
+          <input type="range" id="padx" min="0" max="100" value="20" oninput="V('px-val',this.value+' px')">
+        </div>
+        <div>
+          <label>Padding Y: <span id="py-val">10 px</span></label>
+          <input type="range" id="pady" min="0" max="80" value="10" oninput="V('py-val',this.value+' px')">
+        </div>
+        <div>
+          <label>Szerokość ramki: <span id="bw-val">0 px</span></label>
+          <input type="range" id="borderW" min="0" max="10" value="0" oninput="V('bw-val',this.value+' px')">
+        </div>
+      </div>
+      <div class="row2" style="margin-top:14px">
+        <div>
+          <label>Kolor ramki</label>
+          <input type="color" id="borderC" value="#ff4d4d">
+        </div>
+        <div>
+          <label>Styl ramki</label>
+          <select id="borderS">
+            <option value="solid">Solid</option>
+            <option value="dashed">Dashed</option>
+            <option value="dotted">Dotted</option>
+            <option value="double">Double</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Efekty tekstu</div>
+      <div class="row2">
+        <div>
+          <label>Cień / Glow</label>
+          <select id="shadow">
+            <option value="none">Brak</option>
+            <option value="drop">Drop shadow (subtelny)</option>
+            <option value="drop-hard">Drop shadow (mocny, twardy)</option>
+            <option value="glow-red">🔴 Glow czerwony</option>
+            <option value="glow-blue">🔵 Glow niebieski</option>
+            <option value="glow-green">🟢 Glow zielony</option>
+            <option value="glow-cyan">Glow Cyan</option>
+            <option value="glow-purple">🟣 Glow fioletowy</option>
+            <option value="glow-yellow">🟡 Glow żółty</option>
+            <option value="glow-white">Glow biały</option>
+            <option value="glow-orange">🟠 Glow pomarańczowy</option>
+            <option value="outline-black">Outline czarny</option>
+            <option value="outline-white">Outline biały</option>
+            <option value="outline-red">Outline czerwony</option>
+            <option value="outline-thick">Outline gruby (2px)</option>
+            <option value="retro3d">Retro 3D efekt głębi</option>
+            <option value="neon-cyan">Neon Cyan (podwójny glow)</option>
+            <option value="neon-pink">Neon Pink</option>
+            <option value="neon-green">Neon Zielony</option>
+          </select>
+        </div>
+        <div>
+          <label>Efekt ciągły (pętla)</label>
+          <select id="effect">
+            <option value="none">Brak</option>
+            <option value="pulse">Pulsowanie (skala)</option>
+            <option value="rainbow">Tęcza (hue rotate)</option>
+            <option value="neon">Miganie neon</option>
+            <option value="wave">Falowanie (góra-dół)</option>
+            <option value="spin3d">Obrót 3D (Y)</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="section row3">
-    <div>
-      <label>Kolor tekstu</label>
-      <input type="color" id="color" value="#ffffff">
+  <div class="tab-panel" id="tab-animacje">
+    <div class="section">
+      <div class="section-title">Animacja wejścia</div>
+      <div class="row3">
+        <div>
+          <label>Typ animacji wejścia</label>
+          <select id="anim">
+            <option value="fadeIn">🌅 Fade In</option>
+            <option value="slideUp">⬆ Slide Up</option>
+            <option value="slideDown">⬇ Slide Down</option>
+            <option value="slideLeft">➡ Slide Left (z prawej)</option>
+            <option value="slideRight">⬅ Slide Right (z lewej)</option>
+            <option value="zoomIn">🔍 Zoom In (powiększ)</option>
+            <option value="zoomOut">🔎 Zoom Out (zmniejsz)</option>
+            <option value="flipIn">🔄 Flip 3D (X)</option>
+            <option value="bounceIn">🏀 Bounce In</option>
+            <option value="rollIn">🎲 Roll In</option>
+            <option value="shakeIn">📳 Shake In</option>
+            <option value="glitch">👾 Glitch RGB</option>
+            <option value="typewriter">⌨️ Typewriter (znak po znaku)</option>
+            <option value="none">✖ Brak animacji</option>
+          </select>
+        </div>
+        <div>
+          <label>Szybkość animacji wejścia: <span id="aspeed-val">500 ms</span></label>
+          <input type="range" id="animspeed" min="100" max="2500" value="500" step="50" oninput="V('aspeed-val',this.value+' ms')">
+        </div>
+        <div>
+          <label>Animacja wyjścia</label>
+          <select id="outatype">
+            <option value="fadeOut">Fade Out</option>
+            <option value="slideUp">Slide Up</option>
+            <option value="slideDown">Slide Down</option>
+            <option value="zoomIn">Zoom In</option>
+            <option value="slideLeft">Slide Left</option>
+            <option value="slideRight">Slide Right</option>
+            <option value="none">Natychmiastowe (brak)</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div>
-      <label>Tło (kolor)</label>
-      <input type="color" id="bg" value="#000000">
+    <div class="section">
+      <div class="section-title">Pasek postępu</div>
+      <div class="toggle-row">
+        <label>Pokaż pasek postępu (ile zostało czasu)</label>
+        <label class="switch"><input type="checkbox" id="progressBar"><span class="slider"></span></label>
+      </div>
+      <div class="row3" style="margin-top:14px">
+        <div>
+          <label>Kolor paska</label>
+          <input type="color" id="progressColor" value="#ff4d4d">
+        </div>
+        <div>
+          <label>Wysokość paska: <span id="ph-val">4 px</span></label>
+          <input type="range" id="progH" min="1" max="20" value="4" oninput="V('ph-val',this.value+' px')">
+        </div>
+        <div>
+          <label>Pozycja paska</label>
+          <select id="progPos">
+            <option value="bottom">Dół</option>
+            <option value="top">Góra</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div>
-      <label>Przezroczystość tła</label>
-      <input type="number" id="bgOpacity" value="0" min="0" max="100" placeholder="0=brak tła">
+    <div class="section">
+      <div class="section-title">Marquee (scrollujący pasek)</div>
+      <div class="row2">
+        <div>
+          <label>Czas pełnego przejścia: <span id="mspeed-val">12 s</span></label>
+          <input type="range" id="mspeed" min="3" max="60" value="12" oninput="V('mspeed-val',this.value+' s')">
+        </div>
+        <div>
+          <label>Separator między wiadomościami</label>
+          <input type="text" id="msep" value="   •   ">
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="section row">
-    <div>
-      <label>Rozmiar czcionki (px)</label>
-      <input type="number" id="fsize" value="72" min="12" max="300">
+  <div class="tab-panel" id="tab-pozycja">
+    <div class="section">
+      <div class="section-title">Pozycja na ekranie</div>
+      <div class="row3">
+        <div>
+          <label>Pozycja pionowa</label>
+          <select id="pos">
+            <option value="center">Środek ekranu</option>
+            <option value="top">Góra</option>
+            <option value="bottom">Dół</option>
+            <option value="custom">Własna (px od góry)</option>
+          </select>
+        </div>
+        <div>
+          <label>Pozycja pozioma</label>
+          <select id="hpos">
+            <option value="center">Środek ekranu</option>
+            <option value="left">Lewa strona</option>
+            <option value="right">Prawa strona</option>
+            <option value="custom">Własna (px od lewej)</option>
+          </select>
+        </div>
+        <div>
+          <label>Margines od krawędzi: <span id="mg-val">40 px</span></label>
+          <input type="range" id="edgeMargin" min="0" max="300" value="40" oninput="V('mg-val',this.value+' px')">
+        </div>
+      </div>
+      <div class="row2" style="margin-top:14px">
+        <div>
+          <label>Własna pozycja Y (px od góry)</label>
+          <input type="number" id="customY" value="50" min="0" max="4000">
+        </div>
+        <div>
+          <label>Własna pozycja X (px od lewej)</label>
+          <input type="number" id="customX" value="50" min="0" max="7680">
+        </div>
+      </div>
     </div>
-    <div>
-      <label>Pozycja w OBS</label>
-      <select id="pos">
-        <option value="center">Środek</option>
-        <option value="top">Góra</option>
-        <option value="bottom">Dół</option>
-      </select>
+    <div class="section">
+      <div class="section-title">Rozmiar i transformacja</div>
+      <div class="row3">
+        <div>
+          <label>Max szerokość tekstu: <span id="mw-val">900 px</span></label>
+          <input type="range" id="maxwidth" min="100" max="3840" value="900" step="50" oninput="V('mw-val',this.value+' px')">
+        </div>
+        <div>
+          <label>Obrót: <span id="rot-val">0°</span></label>
+          <input type="range" id="rotation" min="-45" max="45" value="0" oninput="V('rot-val',this.value+'°')">
+        </div>
+        <div>
+          <label>Skala: <span id="scale-val">1.0×</span></label>
+          <input type="range" id="scaleFactor" min="0.2" max="3" value="1" step="0.05" oninput="V('scale-val',parseFloat(this.value).toFixed(2)+'×')">
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="section">
-    <label>Cień / glow (opcjonalnie)</label>
-    <select id="shadow">
-      <option value="none">Brak</option>
-      <option value="drop">Drop shadow</option>
-      <option value="glow-red">Glow czerwony</option>
-      <option value="glow-blue">Glow niebieski</option>
-      <option value="glow-white">Glow biały</option>
-      <option value="outline">Outline czarny</option>
-    </select>
+  <div class="tab-panel" id="tab-zaawansowane">
+    <div class="section">
+      <div class="section-title">OBS — ustawienia Canvas</div>
+      <div class="row2">
+        <div>
+          <label>Szerokość canvas OBS (px)</label>
+          <input type="number" id="obsW" value="1920" min="100" max="7680">
+        </div>
+        <div>
+          <label>Wysokość canvas OBS (px)</label>
+          <input type="number" id="obsH" value="1080" min="100" max="4320">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Zachowanie</div>
+      <div class="toggle-row">
+        <label>Animacja wejścia tylko przy pierwszej wiadomości</label>
+        <label class="switch"><input type="checkbox" id="firstAnimOnly"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <label>Powtarzaj animację wejścia przy każdej wiadomości</label>
+        <label class="switch"><input type="checkbox" id="alwaysAnim" checked><span class="slider"></span></label>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Podgląd inline — ustawienia</div>
+      <div class="row2">
+        <div>
+          <label>Kolor tła podglądu</label>
+          <input type="color" id="prevBg" value="#1a1a2e">
+        </div>
+        <div>
+          <label>Wysokość okna podglądu (px)</label>
+          <input type="number" id="prevH" value="200" min="80" max="600">
+        </div>
+      </div>
+    </div>
   </div>
 
   <button class="btn-generate" onclick="generate()">⚡ GENERUJ LINK OBS</button>
 
   <div id="url-box">
-    <p>🔗 Twój URL do OBS (Browser Source)</p>
+    <p class="url-label">🔗 URL do Browser Source w OBS</p>
     <div id="url-out"></div>
-    <button class="copy-btn" onclick="copyURL()">📋 Kopiuj</button>
-    <a id="preview-link" class="preview-btn" target="_blank" href="#">👁 Otwórz podgląd</a>
-    <br><br>
-    <p style="color:#666;font-size:0.78rem;letter-spacing:0">W OBS: Dodaj źródło → Browser → wklej URL → ustaw szerokość/wysokość swojej rozdzielczości. Zaznacz "Przeźroczyste tło" jeśli nie chcesz tła.</p>
+    <div class="btn-row">
+      <button class="copy-btn" onclick="copyURL()">📋 Kopiuj URL</button>
+      <a id="preview-link" class="preview-btn" target="_blank" href="#">👁 Otwórz w karcie</a>
+      <button class="copy-btn" onclick="togglePreview()">🖥 Podgląd inline</button>
+    </div>
+    <p class="obs-hint">
+      <strong>OBS:</strong> Dodaj źródło → Browser → wklej URL → ustaw rozmiar
+      <strong id="hint-res">1920 × 1080</strong> → zaznacz
+      <strong>„Przeźroczyste tło"</strong> jeśli tło = Brak.
+    </p>
     <iframe id="preview-frame" frameborder="0"></iframe>
   </div>
 </div>
 
-<!-- OVERLAY -->
+<!-- ═══════ OVERLAY ═══════ -->
 <div id="overlay">
   <div class="ticker-wrap" id="ticker-wrap">
-    <div class="ticker-text" id="ticker-text"></div>
+    <div class="ticker-bg-box" id="ticker-bg-box">
+      <div class="ticker-text" id="ticker-text"></div>
+    </div>
+    <div class="progress-bar-wrap" id="prog-wrap" style="display:none">
+      <div class="progress-bar" id="prog-bar"></div>
+    </div>
   </div>
 </div>
 
 <script>
-// ── Sprawdź tryb ──
+/* ── helpers ── */
+const $ = id => document.getElementById(id);
+const V = (id,v) => $(id).textContent = v;
+const setC = (id,v) => $(id).value = v;
+
+/* ── TABS ── */
+const TABS = [
+  {id:'tekst',    label:'📝 Tekst'},
+  {id:'wyglad',   label:'🎨 Wygląd'},
+  {id:'animacje', label:'✨ Animacje'},
+  {id:'pozycja',  label:'📐 Pozycja'},
+  {id:'zaawansowane', label:'⚙️ Zaawansowane'},
+];
+(function buildTabs(){
+  const bar = $('tabs-bar');
+  TABS.forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'tab' + (t.id==='tekst'?' active':'');
+    d.textContent = t.label;
+    d.onclick = () => {
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
+      d.classList.add('active');
+      $('tab-'+t.id).classList.add('active');
+    };
+    bar.appendChild(d);
+  });
+})();
+
+/* ── MODE CHECK ── */
 const params = new URLSearchParams(location.search);
 if (params.has('overlay')) {
-  document.getElementById('editor').style.display = 'none';
-  document.getElementById('overlay').style.display = 'block';
+  $('editor').style.display = 'none';
+  $('overlay').style.display = 'block';
   runOverlay(params);
 }
 
-// ── Generowanie URL ──
+/* ── GENERATE ── */
 function generate() {
-  const texts = document.getElementById('texts').value.trim();
+  const texts = $('texts').value.trim();
   if (!texts) { alert('Wpisz chociaż jedną linię tekstu!'); return; }
-
   const p = new URLSearchParams();
+  const keys = [
+    'texts','order','mode','prefix','suffix',
+    'font','fsize','weight','letterspacing','align',
+    'color','grad1','grad2','gradDir',
+    'bg','bgOpacity','bgType','bradius','padx','pady','borderW','borderC','borderS',
+    'shadow','effect',
+    'anim','animspeed','outatype',
+    'progressBar','progressColor','progH','progPos',
+    'mspeed','msep',
+    'pos','hpos','edgeMargin','customY','customX',
+    'maxwidth','rotation','scaleFactor',
+    'firstAnimOnly','alwaysAnim',
+  ];
+  keys.forEach(k => {
+    const el = $(k);
+    if (!el) return;
+    const v = el.type==='checkbox' ? (el.checked?'1':'0') : el.value;
+    p.set(k, v);
+  });
+  p.set('useGrad', $('useGradient').checked?'1':'0');
   p.set('overlay','1');
-  p.set('texts', texts);
-  p.set('anim', document.getElementById('anim').value);
-  p.set('dur', document.getElementById('duration').value);
-  p.set('color', document.getElementById('color').value.replace('#',''));
-  p.set('bg', document.getElementById('bg').value.replace('#',''));
-  p.set('bgop', document.getElementById('bgOpacity').value);
-  p.set('fsize', document.getElementById('fsize').value);
-  p.set('pos', document.getElementById('pos').value);
-  p.set('shadow', document.getElementById('shadow').value);
 
   const url = location.origin + location.pathname + '?' + p.toString();
-  document.getElementById('url-out').textContent = url;
-  document.getElementById('preview-link').href = url;
-  document.getElementById('url-box').style.display = 'block';
-
-  // inline preview
-  const frame = document.getElementById('preview-frame');
-  frame.style.display = 'block';
-  frame.src = url;
+  $('url-out').textContent = url;
+  $('preview-link').href = url;
+  $('url-box').style.display = 'block';
+  $('hint-res').textContent = $('obsW').value + ' × ' + $('obsH').value;
 }
 
 function copyURL() {
-  const url = document.getElementById('url-out').textContent;
-  navigator.clipboard.writeText(url).then(() => {
+  navigator.clipboard.writeText($('url-out').textContent).then(() => {
     const btn = document.querySelector('.copy-btn');
+    const old = btn.textContent;
     btn.textContent = '✅ Skopiowano!';
-    setTimeout(() => btn.textContent = '📋 Kopiuj', 2000);
+    setTimeout(() => btn.textContent = old, 2000);
   });
 }
 
-// ── OVERLAY LOGIC ──
+let previewOpen = false;
+function togglePreview() {
+  const frame = $('preview-frame');
+  if (!previewOpen) {
+    const h = parseInt($('prevH')?.value||200);
+    frame.style.display = 'block';
+    frame.style.height = h+'px';
+    frame.style.background = $('prevBg')?.value||'#111';
+    frame.src = $('url-out').textContent;
+    previewOpen = true;
+  } else {
+    frame.style.display = 'none'; frame.src = ''; previewOpen = false;
+  }
+}
+
+/* ── OVERLAY ── */
 function runOverlay(p) {
-  const texts   = p.get('texts').split('\n').filter(t => t.trim());
-  const anim    = p.get('anim') || 'fadeIn';
-  const dur     = (parseFloat(p.get('dur')) || 4) * 1000;
-  const color   = '#' + (p.get('color') || 'ffffff');
-  const bg      = p.get('bg') || '000000';
-  const bgop    = parseFloat(p.get('bgop') || 0) / 100;
-  const fsize   = parseInt(p.get('fsize') || 72);
-  const pos     = p.get('pos') || 'center';
-  const shadow  = p.get('shadow') || 'none';
+  const get = (k,d) => p.get(k) ?? d;
+
+  const rawTexts  = get('texts','Hello OBS!').split('\n').filter(t=>t.trim());
+  const order     = get('order','seq');
+  const mode      = get('mode','normal');
+  const prefix    = get('prefix','');
+  const suffix    = get('suffix','');
+  const dur       = parseFloat(get('duration',get('dur','4')))*1000;
+  const gapMs     = parseFloat(get('gap','1'))*1000;
+  const fontFam   = get('font','Bebas Neue');
+  const fsize     = parseInt(get('fsize','72'));
+  const weight    = get('weight','700');
+  const ls        = get('letterspacing','2');
+  const align     = get('align','center');
+  const color     = '#'+get('color','ffffff');
+  const useGrad   = get('useGrad','0')==='1';
+  const grad1     = '#'+get('grad1','ff4d4d');
+  const grad2     = '#'+get('grad2','ffdd44');
+  const gradDir   = get('gradDir','90deg');
+  const bgHex     = get('bg','000000');
+  const bgop      = parseFloat(get('bgOpacity','0'))/100;
+  const bgType    = get('bgType','none');
+  const brad      = get('bradius','8');
+  const padx      = get('padx','20');
+  const pady      = get('pady','10');
+  const borderW   = get('borderW','0');
+  const borderC   = '#'+get('borderC','ff4d4d').replace('#','');
+  const borderS   = get('borderS','solid');
+  const shadow    = get('shadow','none');
+  const effect    = get('effect','none');
+  const anim      = get('anim','fadeIn');
+  const aspeedMs  = parseInt(get('animspeed','500'));
+  const outatype  = get('outatype','fadeOut');
+  const showProg  = get('progressBar','0')==='1';
+  const progColor = '#'+get('progressColor','ff4d4d').replace('#','');
+  const progH     = get('progH','4');
+  const progPos   = get('progPos','bottom');
+  const mspeed    = get('mspeed','12');
+  const msep      = get('msep','   •   ');
+  const pos       = get('pos','center');
+  const hpos      = get('hpos','center');
+  const margin    = parseInt(get('edgeMargin','40'));
+  const customY   = parseInt(get('customY','50'));
+  const customX   = parseInt(get('customX','50'));
+  const maxw      = get('maxwidth','900');
+  const rot       = get('rotation','0');
+  const scale     = parseFloat(get('scaleFactor','1'));
+
+  // shadow map
+  const SH = {
+    'none':'none',
+    'drop':'1px 3px 6px rgba(0,0,0,.85)',
+    'drop-hard':'3px 5px 0 rgba(0,0,0,1)',
+    'glow-red':'0 0 16px #f22,0 0 36px #f0000088',
+    'glow-blue':'0 0 16px #22f,0 0 36px #0088ff88',
+    'glow-green':'0 0 16px #2f6,0 0 36px #00ff4488',
+    'glow-cyan':'0 0 16px #0ff,0 0 36px #00ffff88',
+    'glow-purple':'0 0 16px #c4f,0 0 36px #aa00ff88',
+    'glow-yellow':'0 0 16px #fd0,0 0 36px #ffcc0088',
+    'glow-white':'0 0 16px #fff,0 0 36px #ffffff88',
+    'glow-orange':'0 0 16px #f80,0 0 36px #ff660088',
+    'outline-black':'-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000',
+    'outline-white':'-2px -2px 0 #fff,2px -2px 0 #fff,-2px 2px 0 #fff,2px 2px 0 #fff',
+    'outline-red':'-2px -2px 0 #f00,2px -2px 0 #f00,-2px 2px 0 #f00,2px 2px 0 #f00',
+    'outline-thick':'-3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000,3px 3px 0 #000,-3px 0 0 #000,3px 0 0 #000,0 -3px 0 #000,0 3px 0 #000',
+    'retro3d':'3px 3px 0 #cc0000,6px 6px 0 #880000',
+    'neon-cyan':'0 0 7px #fff,0 0 14px #0ff,0 0 30px #0ff,0 0 60px #0ff6',
+    'neon-pink':'0 0 7px #fff,0 0 14px #f0f,0 0 30px #f0f,0 0 60px #f0f6',
+    'neon-green':'0 0 7px #fff,0 0 14px #0f0,0 0 30px #0f0,0 0 60px #0f06',
+  };
+
+  const wrap = $('ticker-wrap');
+  const box  = $('ticker-bg-box');
+  const el   = $('ticker-text');
+  const pw   = $('prog-wrap');
+  const pb   = $('prog-bar');
+
+  // CSS var for anim speed
+  document.documentElement.style.setProperty('--asp', aspeedMs+'ms');
+
+  // global bg transparent
+  document.body.style.background = 'transparent';
+
+  // box styles
+  box.style.padding      = `${pady}px ${padx}px`;
+  box.style.borderRadius = brad+'px';
+  if (parseInt(borderW) > 0) {
+    box.style.border = `${borderW}px ${borderS} ${borderC}`;
+  }
 
   // bg
-  if (bgop > 0) {
-    const r = parseInt(bg.slice(0,2),16), g = parseInt(bg.slice(2,4),16), b = parseInt(bg.slice(4,6),16);
-    document.body.style.background = `rgba(${r},${g},${b},${bgop})`;
-  }
-
-  // pozycja
-  const wrap = document.getElementById('ticker-wrap');
-  wrap.style.position = 'absolute';
-  wrap.style.left = '50%';
-  if (pos === 'top') {
-    wrap.style.top = '40px';
-    wrap.style.transform = 'translateX(-50%)';
-  } else if (pos === 'bottom') {
-    wrap.style.bottom = '40px';
-    wrap.style.top = 'auto';
-    wrap.style.transform = 'translateX(-50%)';
-  } else {
-    wrap.style.top = '50%';
-    wrap.style.transform = 'translate(-50%,-50%)';
-  }
-
-  // shadow/glow
-  let textShadow = 'none';
-  if (shadow === 'drop')       textShadow = '2px 4px 8px rgba(0,0,0,0.9)';
-  if (shadow === 'glow-red')   textShadow = '0 0 20px #ff2222, 0 0 40px #ff0000aa';
-  if (shadow === 'glow-blue')  textShadow = '0 0 20px #22aaff, 0 0 40px #0088ffaa';
-  if (shadow === 'glow-white') textShadow = '0 0 16px #ffffff, 0 0 32px #ffffffaa';
-  if (shadow === 'outline')    textShadow = '-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000';
-
-  const el = document.getElementById('ticker-text');
-  el.style.color = color;
-  el.style.fontSize = fsize + 'px';
-  el.style.textShadow = textShadow;
-
-  let idx = 0;
-  function show() {
-    const txt = texts[idx % texts.length];
-    idx++;
-
-    // reset
-    el.className = 'ticker-text';
-    wrap.innerHTML = '';
-    wrap.className = 'ticker-wrap';
-
-    if (anim === 'glitch') {
-      wrap.classList.add('glitch-wrapper');
-      el.textContent = txt;
-      const g1 = document.createElement('div');
-      g1.className = 'glitch-layer g1'; g1.textContent = txt;
-      g1.style.fontSize = fsize + 'px';
-      const g2 = document.createElement('div');
-      g2.className = 'glitch-layer g2'; g2.textContent = txt;
-      g2.style.fontSize = fsize + 'px';
-      el.style.position = 'relative';
-      el.style.zIndex = 1;
-      el.style.textShadow = textShadow;
-      wrap.appendChild(el);
-      wrap.appendChild(g1);
-      wrap.appendChild(g2);
-      el.classList.add('anim-fadeIn');
-      setTimeout(() => {
-        g1.style.animationPlayState = 'paused';
-        g2.style.animationPlayState = 'paused';
-        el.classList.add('anim-fadeOut');
-        setTimeout(show, 500);
-      }, dur);
-
-    } else if (anim === 'typewriter') {
-      const outer = document.createElement('div');
-      outer.className = 'typewriter-wrap';
-      outer.style.maxWidth = '90vw';
-      el.textContent = txt;
-      el.style.overflow = 'hidden';
-      el.style.display = 'inline-block';
-      el.style.whiteSpace = 'nowrap';
-      outer.appendChild(el);
-      const cursor = document.createElement('span');
-      cursor.className = 'cursor-blink';
-      cursor.style.color = color;
-      outer.appendChild(cursor);
-      wrap.appendChild(outer);
-
-      // type char by char
-      const chars = txt.split('');
-      el.textContent = '';
-      let ci = 0;
-      const speed = Math.max(40, (dur * 0.5) / chars.length);
-      const timer = setInterval(() => {
-        el.textContent += chars[ci];
-        ci++;
-        if (ci >= chars.length) clearInterval(timer);
-      }, speed);
-
-      setTimeout(() => {
-        cursor.style.animation = 'none';
-        cursor.style.opacity = '0';
-        el.classList.add('anim-fadeOut');
-        setTimeout(show, 600);
-      }, dur + (chars.length * speed));
-
+  if (bgType !== 'none' && bgop > 0) {
+    const r=parseInt(bgHex.slice(0,2),16),g=parseInt(bgHex.slice(2,4),16),b=parseInt(bgHex.slice(4,6),16);
+    if (bgType === 'gradient') {
+      box.style.background = `linear-gradient(135deg,rgba(${r},${g},${b},${bgop}),rgba(0,0,0,${bgop}))`;
     } else {
-      el.textContent = txt;
-      wrap.appendChild(el);
-      el.classList.add('anim-' + anim);
-      setTimeout(() => {
-        el.classList.remove('anim-' + anim);
-        el.classList.add('anim-fadeOut');
-        setTimeout(show, 500);
-      }, dur);
+      box.style.background = `rgba(${r},${g},${b},${bgop})`;
     }
   }
+
+  // progress bar
+  if (showProg) {
+    pw.style.display = 'block';
+    pw.style.height  = progH+'px';
+    pw.style[progPos==='top'?'top':'bottom'] = '0';
+    if (progPos==='top') { pw.style.top='0'; pw.style.bottom='auto'; }
+    pb.style.background = progColor;
+  }
+
+  // font
+  el.style.fontFamily    = `'${fontFam}',sans-serif`;
+  el.style.fontSize      = fsize+'px';
+  el.style.fontWeight    = weight;
+  el.style.letterSpacing = ls+'px';
+  el.style.textAlign     = align;
+  el.style.textShadow    = SH[shadow]||'none';
+
+  // color
+  if (useGrad) {
+    el.style.backgroundImage       = `linear-gradient(${gradDir},${grad1},${grad2})`;
+    el.style.webkitBackgroundClip  = 'text';
+    el.style.webkitTextFillColor   = 'transparent';
+    el.style.backgroundClip        = 'text';
+  } else {
+    el.style.color = color;
+  }
+
+  // effect
+  if (effect !== 'none') el.classList.add('fx-'+effect);
+
+  // position wrap
+  wrap.style.maxWidth = maxw+'px';
+  let transform = '';
+  if (hpos === 'center') { wrap.style.left='50%'; transform += 'translateX(-50%) '; }
+  else if (hpos === 'left')  { wrap.style.left  = margin+'px'; }
+  else if (hpos === 'right') { wrap.style.right = margin+'px'; wrap.style.left='auto'; }
+  else { wrap.style.left = customX+'px'; }
+
+  if (pos === 'top')    { wrap.style.top = margin+'px'; }
+  else if (pos === 'bottom') { wrap.style.bottom = margin+'px'; wrap.style.top='auto'; }
+  else if (pos === 'center') { wrap.style.top='50%'; transform += 'translateY(-50%) '; }
+  else { wrap.style.top = customY+'px'; }
+
+  if (parseFloat(rot) !== 0) transform += `rotate(${rot}deg) `;
+  if (parseFloat(scale) !== 1) transform += `scale(${scale}) `;
+  if (transform) wrap.style.transform = transform.trim();
+
+  // ── MARQUEE ──
+  if (mode === 'marquee') {
+    const allText = rawTexts.map(t=>(prefix?prefix+' ':'')+t+(suffix?' '+suffix:'')).join(msep);
+    wrap.style.width = '100vw'; wrap.style.maxWidth = '100vw';
+    if (hpos==='center') { wrap.style.left='0'; wrap.style.transform='none'; }
+    box.style.width = '100%'; box.style.overflow = 'hidden';
+    const inner = document.createElement('div');
+    inner.className = 'marquee-inner';
+    inner.style.animation = `marquee-anim ${mspeed}s linear infinite`;
+    el.textContent = allText;
+    inner.appendChild(el);
+    box.innerHTML = '';
+    box.appendChild(inner);
+    if (showProg) box.appendChild(pw);
+    return;
+  }
+
+  // ── PERMANENT ──
+  if (mode === 'permanent') {
+    el.textContent = (prefix?prefix+' ':'')+rawTexts[0]+(suffix?' '+suffix:'');
+    applyIn(el, anim, aspeedMs);
+    return;
+  }
+
+  // ── NORMAL ──
+  let texts = [...rawTexts];
+  let idx = 0;
+  let isFirst = true;
+  if (order === 'random') shuffle(texts);
+
+  function shuffle(a) {
+    for (let i=a.length-1;i>0;i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+  }
+
+  function show() {
+    const raw = order==='single' ? texts[0] : texts[idx % texts.length];
+    idx++;
+    const txt = (prefix?prefix+' ':'')+raw+(suffix?' '+suffix:'');
+
+    // clear glitch layers
+    box.querySelectorAll('.glitch-layer').forEach(l=>l.remove());
+
+    el.className = 'ticker-text';
+    if (effect!=='none') el.classList.add('fx-'+effect);
+    el.textContent = txt;
+    el.style.opacity = '1';
+    el.style.webkitTextFillColor = useGrad ? 'transparent' : '';
+
+    const useAnimNow = !(isFirst===false && get('firstAnimOnly','0')==='1') || isFirst;
+    isFirst = false;
+
+    if (useAnimNow) applyIn(el, anim, aspeedMs);
+
+    // progress bar
+    if (showProg) {
+      pb.style.transition = 'none';
+      pb.style.transform  = 'scaleX(1)';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        pb.style.transition = `transform ${dur}ms linear`;
+        pb.style.transform  = 'scaleX(0)';
+      }));
+    }
+
+    if (order !== 'single') {
+      const totalWait = (anim==='typewriter')
+        ? dur + txt.length * Math.max(40, (dur*.5)/txt.length)
+        : dur;
+
+      setTimeout(() => {
+        applyOut(el, outatype, () => { setTimeout(show, gapMs); });
+      }, totalWait);
+    }
+  }
+
+  function applyIn(el, animType, speed) {
+    el.classList.remove('anim-fadeIn','anim-fadeOut','anim-slideUp','anim-slideDown','anim-slideLeft','anim-slideRight','anim-zoomIn','anim-zoomOut','anim-flipIn','anim-bounceIn','anim-rollIn','anim-shakeIn');
+    void el.offsetWidth;
+
+    if (animType === 'none') return;
+    if (animType === 'glitch') { doGlitch(el, speed); return; }
+    if (animType === 'typewriter') { doTypewriter(el, dur); return; }
+
+    el.classList.add('anim-'+animType);
+    el.style.animationDuration = speed+'ms';
+  }
+
+  function applyOut(el, outType, cb) {
+    if (outType === 'none') { el.style.opacity='0'; setTimeout(cb,50); return; }
+    el.classList.remove('anim-fadeIn','anim-bounceIn','anim-rollIn','anim-shakeIn','anim-flipIn','anim-zoomIn','anim-zoomOut','anim-slideUp','anim-slideDown','anim-slideLeft','anim-slideRight');
+    void el.offsetWidth;
+    el.classList.add('anim-'+outType);
+    el.style.animationDuration = '380ms';
+    setTimeout(cb, 400);
+  }
+
+  function doGlitch(el, speed) {
+    box.querySelectorAll('.glitch-layer').forEach(l=>l.remove());
+    el.classList.add('anim-fadeIn');
+    el.style.animationDuration = speed+'ms';
+    el.style.position='relative'; el.style.zIndex='1';
+    ['g1','g2'].forEach(cls => {
+      const g = document.createElement('div');
+      g.className = 'glitch-layer '+cls;
+      g.textContent = el.textContent;
+      g.style.fontFamily    = el.style.fontFamily;
+      g.style.fontSize      = el.style.fontSize;
+      g.style.fontWeight    = el.style.fontWeight;
+      g.style.letterSpacing = el.style.letterSpacing;
+      box.appendChild(g);
+    });
+  }
+
+  function doTypewriter(el, dur) {
+    const txt = el.textContent;
+    el.textContent = '';
+    el.style.opacity = '1';
+    const chars = txt.split('');
+    const spd = Math.max(35, (dur*.55)/chars.length);
+    let i = 0;
+    const t = setInterval(()=>{ el.textContent += chars[i++]; if(i>=chars.length) clearInterval(t); }, spd);
+  }
+
   show();
 }
 </script>
